@@ -51,7 +51,7 @@ export function Player({ colliders }: { colliders: Aabb[] }) {
         return
       }
       if (e.code === 'Escape' || e.code === 'KeyP') {
-        if (game.phase === 'notebook' || game.phase === 'gazette') game.setPhase('playing')
+        if (game.phase === 'notebook' || game.phase === 'gazette' || game.phase === 'palace') game.setPhase('playing')
         else if (game.phase === 'playing' && !document.pointerLockElement) game.setPhase('paused')
         return
       }

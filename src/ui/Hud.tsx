@@ -4,6 +4,7 @@ import { money } from '../sim/news'
 import { useFocus } from '../state/focus'
 import { useGame } from '../state/game'
 import { useWorld } from '../state/world'
+import { dueConcepts } from '../learning/mastery'
 
 export function heatLevel(heat: number) {
   if (heat >= 75) return { label: 'Wanted', tone: 'hot' }
@@ -22,6 +23,17 @@ function Toast() {
     return () => clearTimeout(t)
   }, [toast])
   return toast ? <div className={`toast ${visible ? 'show' : ''}`}>{toast.text}</div> : null
+}
+
+/** "Mind Palace · 3 due": the nudge to come back and review. Rechecked every in-game minute. */
+function DueChip() {
+  useWorld((s) => Math.floor(s.game?.minutes ?? 0))
+  const learning = useWorld((s) => s.game?.learning)
+  if (!learning) return null
+  const tried = Object.values(learning).some((m) => m && m.attempts > 0)
+  const due = dueConcepts(learning, Date.now()).length
+  if (tried && !due) return null
+  return <div className={`hud-due ${due ? 'on' : ''}`}>{due ? `Mind Palace · ${due} due` : 'Mind Palace: your office, right side'}</div>
 }
 
 export function Hud() {
@@ -46,6 +58,7 @@ export function Hud() {
         <div className="hud-time">{clockLabel(minute)}</div>
         <div className="hud-date">{dateLabel(minute)}</div>
         <div className="hud-cash">{money(cash)}</div>
+        <DueChip />
       </div>
       <div className={`hud-heat ${level.tone}`} title="How much attention the police are paying you">
         <span>Heat</span>

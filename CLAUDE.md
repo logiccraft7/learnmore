@@ -32,10 +32,17 @@ Full design: `docs/GAME_DESIGN.md` (read it before starting a milestone; don't r
 ## Progress
 - [x] M1 Foundation: The Narrows street, first-person walking, stylized look, quality presets, artifact hosting
 - [x] M2 Sim core: clock + day/night (20 min/day, frozen in menus), cash, items, heat, supply/demand market with daily events, Ashport Gazette (E at News & Tobacco), notebook (Tab), interactions (E), autosave + Continue
-- [ ] M3 Learning engine · [ ] M4 Racket v0 · [ ] M5 Case 1 · [ ] M6 Art & feel pass
+- [x] M3 Learning engine: 15-concept graph, 15 seeded generators (5 difficulties each), answer parsing, Elo mastery + spaced repetition (real time), 4 mind voices with level-scaled hints, Mind Palace (office door), HUD due chip, Gazette "Work it out", save v2 with v1 migration
+- [ ] M4 Racket v0 · [ ] M5 Case 1 · [ ] M6 Art & feel pass
 
 ## Where things live (M2)
 - Pure sim: `src/sim/clock.ts`, `economy.ts` (curves + events), `game.ts` (GameState, daily update, saving), `news.ts` (Gazette), `interact.ts`
 - Stores: `src/state/world.ts` (game state, save/load, `playerPose`), `game.ts` (phase), `focus.ts` (E-prompt target)
 - Street interactions: `src/world/interactables.ts`; lighting by hour: `src/world/daylight.ts` + `lightNow()` in `Atmosphere.tsx`
-- Debug hook `window.__bl`: `teleport`, `position`, `setHour(h)`, `spots`, `game`, `models`
+- Debug hook `window.__bl`: `teleport`, `position`, `setHour(h)`, `spots`, `game`, `models`, `palace` (current problem + answer)
+
+## Where things live (M3)
+- `src/learning/`: `concepts.ts` (graph + voices), `generators/{logician,economist,psychology,skeptic}.ts` (+ `index.ts` registry), `parse.ts` (typed answers), `mastery.ts` (Elo, levels, SRS ladder, unlocks), `session.ts` (plans/interleaving), `voices.ts` (levels, hints, lines)
+- UI: `src/ui/MindPalace.tsx` (board → session → summary), opened via `usePalace` (`src/state/palace.ts`) + phase `'palace'`
+- New concept = add to `ConceptId` + `CONCEPTS` + a generator in the registry; the generator test sweep covers it automatically.
+- zustand 5: never return a fresh object/array from a selector (`?? {}`) — it loops forever. Use a module-level constant.

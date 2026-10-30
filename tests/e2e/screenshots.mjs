@@ -92,6 +92,50 @@ try {
   await page.screenshot({ path: `${OUT}/notebook-after-paper.png` })
   await page.keyboard.press('Tab')
 
+  // Mind Palace: walk up to the office door, press E, train, answer one right and one wrong.
+  const office = await page.evaluate(() => window.__bl.spots.find((s) => s.id === 'office'))
+  await page.evaluate((s) => window.__bl.teleport(s.x + Math.sin(s.yaw) * 1.5, s.z + Math.cos(s.yaw) * 1.5, s.yaw, 0.05), office)
+  await page.waitForTimeout(800)
+  await page.keyboard.press('KeyE')
+  await page.waitForTimeout(800)
+  await page.screenshot({ path: `${OUT}/palace-board.png` })
+  await page.getByRole('button', { name: /train weakest/i }).click()
+  await page.waitForTimeout(500)
+  await page.screenshot({ path: `${OUT}/palace-problem.png` })
+  const answerCurrent = async (right) => {
+    const cur = await page.evaluate(() => window.__bl.palace)
+    if (!cur) throw new Error('no Mind Palace problem on screen')
+    if (cur.kind === 'choice') {
+      const letter = right ? cur.answer : 'ABCD'[('ABCD'.indexOf(cur.answer) + 1) % 4]
+      await page.keyboard.press(letter.toLowerCase())
+    } else {
+      await page.fill('#mp-input', right ? cur.answer : String(Number(cur.answer) + 997))
+      await page.keyboard.press('Enter')
+    }
+    await page.waitForTimeout(500)
+    return cur
+  }
+  const first = await answerCurrent(true)
+  await page.screenshot({ path: `${OUT}/palace-right.png` })
+  await page.keyboard.press('Enter')
+  await page.waitForTimeout(400)
+  await page.keyboard.press('h')
+  await page.waitForTimeout(300)
+  await answerCurrent(false)
+  await page.screenshot({ path: `${OUT}/palace-wrong.png` })
+  const learned = await page.evaluate((c) => window.__bl.game.learning[c], first.concept)
+  if (!learned || learned.correct < 1) errors.push(`Mind Palace did not record a correct answer for ${first.concept}`)
+  for (let i = 0; i < 6; i++) {
+    await page.keyboard.press('Enter')
+    await page.waitForTimeout(300)
+    await answerCurrent(true)
+  }
+  await page.keyboard.press('Enter')
+  await page.waitForTimeout(500)
+  await page.screenshot({ path: `${OUT}/palace-summary.png` })
+  await page.keyboard.press('Escape')
+  await page.waitForTimeout(300)
+
   // Saving: reload and continue.
   await page.evaluate(() => window.dispatchEvent(new Event('beforeunload')))
   await page.reload()
@@ -103,6 +147,8 @@ try {
     await page.waitForTimeout(500)
     const restored = await page.evaluate(() => window.__bl.game.cash)
     if (Math.abs(restored - cash1) > 1e-9) errors.push(`save did not restore cash (${restored} vs ${cash1})`)
+    const kept = await page.evaluate(() => Object.keys(window.__bl.game.learning).length)
+    if (!kept) errors.push('save did not keep Mind Palace progress')
   }
   await ctx.close()
 } finally {

@@ -1,5 +1,6 @@
 import { MINUTES_PER_DAY, dayIndex } from './clock'
 import { newMarket, stepMarket, type Market, type MarketEvent } from './economy'
+import type { Learning } from '../learning/mastery'
 
 export type ItemId = 'badge' | 'notebook' | 'revolver' | 'cigarettes' | 'gazette'
 
@@ -14,7 +15,7 @@ export const ITEMS: Record<ItemId, { name: string; note: string }> = {
 export type NewsDay = { day: number; events: MarketEvent[] }
 
 export type GameState = {
-  version: 1
+  version: 2
   seed: number
   /** Game minutes since midnight on day 0. */
   minutes: number
@@ -28,6 +29,8 @@ export type GameState = {
   /** Days on which the player bought the paper. */
   papersBought: number[]
   player: { x: number; z: number; yaw: number }
+  /** Mastery per concept (Mind Palace). */
+  learning: Learning
 }
 
 export const START_MINUTES = 20 * 60 + 15 // 8:15 PM on the first evening
@@ -35,7 +38,7 @@ const HEAT_COOLDOWN_PER_DAY = 8
 
 export function newGame(seed: number, spawn: { x: number; z: number; yaw: number }): GameState {
   return {
-    version: 1,
+    version: 2,
     seed,
     minutes: START_MINUTES,
     cash: 14.2,
@@ -45,6 +48,7 @@ export function newGame(seed: number, spawn: { x: number; z: number; yaw: number
     news: [{ day: 0, events: [] }],
     papersBought: [],
     player: { ...spawn },
+    learning: {},
   }
 }
 
@@ -98,12 +102,14 @@ export function serialize(state: GameState): string {
   return JSON.stringify(state)
 }
 
-/** Parse a save; returns null for anything missing, corrupt or from an incompatible version. */
+/** Parse a save; returns null for anything missing, corrupt or from an incompatible version. Older saves are upgraded. */
 export function deserialize(raw: string | null): GameState | null {
   if (!raw) return null
   try {
-    const s = JSON.parse(raw) as GameState
-    if (s?.version !== 1) return null
+    let s = JSON.parse(raw) as GameState
+    // v1 (step 2) had no learning yet.
+    if ((s as { version?: number })?.version === 1) s = { ...s, version: 2, learning: {} }
+    if (s?.version !== 2) return null
     if (typeof s.minutes !== 'number' || typeof s.cash !== 'number' || !s.market || !s.player) return null
     return s
   } catch {

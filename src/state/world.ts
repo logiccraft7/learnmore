@@ -2,6 +2,9 @@ import { create } from 'zustand'
 import { GAME_MINUTES_PER_REAL_SECOND } from '../sim/clock'
 import { SAVE_KEY, advanceTime, deserialize, newGame, serialize, type GameState } from '../sim/game'
 import { WORLD_SEED, generateStreet } from '../world/layout'
+import { recordResult } from '../learning/mastery'
+import { levelUpLine, voiceLevels } from '../learning/voices'
+import type { ConceptId } from '../learning/types'
 
 export const street = generateStreet(WORLD_SEED)
 
@@ -28,6 +31,8 @@ type WorldState = {
   update(fn: (g: GameState) => GameState): void
   save(): void
   showToast(text: string): void
+  /** Score an answer in the Mind Palace; returns the rating change. */
+  recordAnswer(concept: ConceptId, difficulty: number, correct: boolean, hinted: boolean): number
 }
 
 export const useWorld = create<WorldState>((set, get) => ({
@@ -67,5 +72,18 @@ export const useWorld = create<WorldState>((set, get) => ({
   },
   showToast(text) {
     set({ toast: { text, id: Date.now() } })
+  },
+  recordAnswer(concept, difficulty, correct, hinted) {
+    const g = get().game
+    if (!g) return 0
+    const before = g.learning[concept]?.rating ?? 1000
+    const levelsBefore = voiceLevels(g.learning)
+    const learning = { ...g.learning, [concept]: recordResult(g.learning[concept], difficulty, correct, hinted, Date.now()) }
+    set({ game: { ...g, learning } })
+    const levelsAfter = voiceLevels(learning)
+    for (const v of Object.keys(levelsAfter) as (keyof typeof levelsAfter)[])
+      if (levelsAfter[v] > levelsBefore[v]) get().showToast(`${levelUpLine(v)} (Level ${levelsAfter[v]})`)
+    get().save()
+    return learning[concept]!.rating - before
   },
 }))

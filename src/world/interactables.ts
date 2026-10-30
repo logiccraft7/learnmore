@@ -3,6 +3,7 @@ import { GAZETTE_PRICE, buyGazette, type GameState } from '../sim/game'
 import type { Spot } from '../sim/interact'
 import { useGame } from '../state/game'
 import { street, useWorld } from '../state/world'
+import { usePalace } from '../state/palace'
 import type { Building } from './layout'
 
 export type Interactable = Spot & {
@@ -76,15 +77,19 @@ function build(): Interactable[] {
     () => 'Slip into Precinct 9',
     () =>
       toast(
-        'Sergeant Doyle, without looking up: "Commissioner wants you invisible, rookie. Get in with the Blind Pig crowd. And don\'t come through the front door again."',
+        'Sergeant Doyle, without looking up: "Commissioner wants you invisible, rookie. Get in with the Blind Pig crowd. But sharpen that head first: go sit in your office and think. And don\'t come through the front door again."',
       ),
   )
 
   add(
     'PRIVATE INQUIRIES · 2ND FL.',
     'office',
-    () => 'Your office (2nd floor)',
-    () => toast('Your key sticks in the lock. The landlord is "fixing" the stairs. (Your office and the Mind Palace open in the next update.)'),
+    () => 'Go up to your office: the Mind Palace',
+    () => {
+      document.exitPointerLock?.()
+      usePalace.getState().open({ kind: 'board' })
+      useGame.getState().setPhase('palace')
+    },
   )
 
   add(

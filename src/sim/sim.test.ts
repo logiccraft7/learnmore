@@ -75,6 +75,10 @@ describe('game state', () => {
     expect(deserialize(serialize(s))).toEqual(s)
     expect(deserialize('{nope')).toBeNull()
     expect(deserialize(JSON.stringify({ version: 99 }))).toBeNull()
+    // A step-2 save (v1, no learning) upgrades instead of being thrown away.
+    const { learning: _drop, ...v1 } = { ...s, version: 1 }
+    void _drop
+    expect(deserialize(JSON.stringify(v1))).toEqual({ ...s, learning: {} })
     expect(deserialize(null)).toBeNull()
   })
 })

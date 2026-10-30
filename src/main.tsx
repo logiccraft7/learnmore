@@ -6,6 +6,8 @@ import { useAssets } from './state/assets'
 import { useWorld } from './state/world'
 import { MINUTES_PER_DAY } from './sim/clock'
 import { INTERACTABLES } from './world/interactables'
+import { palaceDebug } from './ui/MindPalace'
+import { formatAnswer } from './learning/parse'
 import './styles.css'
 
 // Debug/test hook; the player adds teleport/position to the same object.
@@ -26,6 +28,14 @@ Object.defineProperties(w.__bl, {
   },
   spots: { get: () => INTERACTABLES.map(({ id, x, z, yaw }) => ({ id, x, z, yaw })) },
   game: { get: () => useWorld.getState().game },
+  /** The Mind Palace problem on screen and how to type its answer. */
+  palace: {
+    get: () => {
+      const p = palaceDebug.current
+      if (!p) return null
+      return { concept: p.concept, kind: p.kind, answer: p.kind === 'choice' ? 'ABCD'[p.answer] : String(p.answer), formatted: formatAnswer(p) }
+    },
+  },
 })
 
 createRoot(document.getElementById('root')!).render(

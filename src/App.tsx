@@ -10,6 +10,7 @@ import { PauseMenu } from './ui/PauseMenu'
 import { Notebook } from './ui/Notebook'
 import { Gazette } from './ui/Gazette'
 import { AutoSave } from './ui/AutoSave'
+import { MindPalace } from './ui/MindPalace'
 import { Loading } from './ui/Loading'
 import { ErrorBoundary, GlobalErrors, NoWebGL, hasWebGL } from './ui/ErrorBoundary'
 
@@ -41,6 +42,7 @@ export function App() {
       <Hud />
       <Notebook />
       <Gazette />
+      <MindPalace />
       <AutoSave />
       <PauseMenu />
       <TitleScreen />

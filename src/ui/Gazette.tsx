@@ -2,6 +2,20 @@ import { edition, money } from '../sim/news'
 import { useGame } from '../state/game'
 import { useWorld } from '../state/world'
 import { Sparkline } from './Sparkline'
+import { generate } from '../learning/generators'
+import { targetDifficulty } from '../learning/mastery'
+import { usePalace } from '../state/palace'
+import { deriveSeed } from '../sim/rng'
+
+/** Turn today's market story into a supply-and-demand problem in the Mind Palace. */
+function workItOut(headline: string) {
+  const g = useWorld.getState().game
+  if (!g) return
+  const p = generate('supply_demand', deriveSeed(g.seed, `gazette-${g.minutes}`), Math.max(3, targetDifficulty(g.learning.supply_demand)))
+  const problem = { ...p, prompt: `Today's Gazette: "${headline}." Suppose the Narrows gin market looks like this. ${p.prompt}` }
+  usePalace.getState().open({ kind: 'problems', problems: [problem], title: 'From the Gazette' })
+  useGame.getState().setPhase('palace')
+}
 
 export function Gazette() {
   const phase = useGame((s) => s.phase)
@@ -28,6 +42,9 @@ export function Gazette() {
             <aside className="voice">
               <b>The Economist</b> <span>(a voice in your head)</span>
               <p>{lead.lesson}</p>
+              <button className="fold work" onClick={() => workItOut(lead.headline)}>
+                Work it out in the Mind Palace
+              </button>
             </aside>
           )}
         </section>
