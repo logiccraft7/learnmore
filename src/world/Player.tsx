@@ -78,18 +78,21 @@ export function Player({ spawn, colliders }: { spawn: { x: number; z: number; ya
     }
   }, [gl])
 
-  // Test/debug hook: lets the screenshot script place the camera.
+  // Test/debug hook: lets the screenshot scripts place the camera and read the position.
   useEffect(() => {
-    ;(window as unknown as { __bl: unknown }).__bl = {
-      teleport(x: number, z: number, y?: number, p?: number) {
-        pos.current.set(x, z)
-        if (y !== undefined) yaw.current = y
-        if (p !== undefined) pitch.current = p
+    const w = window as unknown as { __bl?: object }
+    w.__bl ??= {}
+    Object.defineProperties(w.__bl, {
+      teleport: {
+        configurable: true,
+        value(x: number, z: number, y?: number, p?: number) {
+          pos.current.set(x, z)
+          if (y !== undefined) yaw.current = y
+          if (p !== undefined) pitch.current = p
+        },
       },
-      get position() {
-        return { x: pos.current.x, z: pos.current.y, yaw: yaw.current }
-      },
-    }
+      position: { configurable: true, get: () => ({ x: pos.current.x, z: pos.current.y, yaw: yaw.current }) },
+    })
   }, [])
 
   useFrame((_, rawDt) => {

@@ -72,3 +72,6 @@ input[type='range'] { accent-color: var(--gold); width: 160px; }
   .location { bottom: auto; top: max(20px, env(safe-area-inset-top)); }
   .loc-name { font-size: 26px; }
 }
+
+.error-overlay { z-index: 50; background: rgba(8, 10, 14, 0.92); }
+.error-msg { font-family: var(--type); color: var(--sepia); font-size: 14px; line-height: 1.5; margin: 0 0 22px; overflow-wrap: anywhere; }

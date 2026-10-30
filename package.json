@@ -10,10 +10,10 @@
     "typecheck": "tsc",
     "test": "vitest run",
     "shots": "node tests/e2e/screenshots.mjs",
-    "build:artifact": "tsc && node tools/build-artifact.mjs"
+    "build:artifact": "tsc && node tools/build-artifact.mjs",
+    "check:artifact": "node tests/e2e/artifact-check.mjs"
   },
   "dependencies": {
-    "@react-three/drei": "^9.117.3",
     "@react-three/fiber": "^8.17.10",
     "@react-three/postprocessing": "^2.16.3",
     "postprocessing": "^6.36.4",

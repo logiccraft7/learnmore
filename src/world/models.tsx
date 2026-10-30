@@ -1,6 +1,7 @@
-import { Clone, useGLTF } from '@react-three/drei'
 import { useMemo } from 'react'
 import * as THREE from 'three'
+import { useAssets } from '../state/assets'
+import { loadAllModels } from './modelLoader'
 import { toonRamp } from './textures'
 import firehydrantUrl from '../assets/models/firehydrant.glb?url'
 import dumpsterUrl from '../assets/models/dumpster.glb?url'
@@ -45,12 +46,8 @@ export const MODEL_SCALE: Partial<Record<ModelName, number>> = {
   watertower: 5,
 }
 
-const converted = new WeakSet<THREE.Object3D>()
-
 /** Swap every material for the game's cel-shaded look; "Glow*" materials become light sources. */
 function toonify(root: THREE.Object3D) {
-  if (converted.has(root)) return
-  converted.add(root)
   root.traverse((o) => {
     const mesh = o as THREE.Mesh
     if (!mesh.isMesh) return
@@ -71,15 +68,23 @@ function toonify(root: THREE.Object3D) {
   })
 }
 
+/** Start loading every model. Safe to call more than once. */
+let started = false
+export function startModelLoading() {
+  if (started) return
+  started = true
+  void loadAllModels(MODEL_URLS, toonify)
+}
+
+/** Places a model; renders nothing until it has loaded (or if it failed). */
 export function Model({ name, ...props }: { name: ModelName } & JSX.IntrinsicElements['group']) {
-  const { scene } = useGLTF(MODEL_URLS[name])
-  useMemo(() => toonify(scene), [scene])
-  const s = MODEL_SCALE[name] ?? 1
+  const source = useAssets((s) => s.models[name])
+  // Clones share geometry and materials with the source, so a hundred lamps cost one upload.
+  const instance = useMemo(() => source?.clone(), [source])
+  if (!instance) return null
   return (
     <group {...props}>
-      <Clone object={scene} scale={s} />
+      <primitive object={instance} scale={MODEL_SCALE[name] ?? 1} />
     </group>
   )
 }
-
-for (const url of Object.values(MODEL_URLS)) useGLTF.preload(url)

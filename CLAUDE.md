@@ -8,6 +8,7 @@ Full design: `docs/GAME_DESIGN.md` (read it before starting a milestone; don't r
 - `npm run build` — typecheck + production build to `dist/`
 - `npm run shots` — after a build: Playwright screenshots (desktop + phone) into `screenshots/`, fails on page errors or if the player can't walk
 - `npm run build:artifact` — single self-contained HTML (`artifact/black-ledger.html`, all models inlined) for hosting as a claude.ai Artifact
+- `npm run check:artifact` — loads that file under the artifact viewer's strict CSP (no fetch, no eval/WASM) and fails on black screen, errors, missing models or a stuck player. **Always run it before publishing.**
 
 ## Conventions
 - Stack: Vite + TypeScript + React + @react-three/fiber/drei/postprocessing, zustand. No physics engine: collision is `src/sim/collision.ts` (circle vs AABB).
@@ -15,6 +16,8 @@ Full design: `docs/GAME_DESIGN.md` (read it before starting a milestone; don't r
 - Problem generators: `generate(seed, difficulty) -> {prompt, data, answer, check, workedSolution}`; test answers across many seeds.
 - Look: `MeshToonMaterial` + `toonRamp()` for everything lit; emissive things use `MeshBasicMaterial` with `toneMapped: false` so bloom picks them up. Textures are canvas-drawn in `src/world/textures.ts` (no image or font downloads).
 - Models live in `src/assets/models/*.glb`, imported with `?url` and registered in `src/world/models.tsx`. Credit them in `src/assets/models/CREDITS.md`.
+- Never use drei's `useGLTF` or anything that fetches `data:` URLs or uses WebAssembly: the artifact viewer blocks both. Models load through `src/world/modelLoader.ts` (base64 decode + plain `GLTFLoader`, `<img>` textures) into `src/state/assets.ts`.
+- Errors must never blank the page: keep `ErrorBoundary`/`GlobalErrors` (`src/ui/ErrorBoundary.tsx`) in place.
 
 ## Asset pipeline (works inside the cloud container)
 - CC0 packs: `git clone --depth 1 https://github.com/KayKit-Game-Assets/<pack>` (kenney.nl, quaternius.com, poly.pizza are blocked by the network policy). Convert with `npx gltf-transform copy in.gltf out.glb`.

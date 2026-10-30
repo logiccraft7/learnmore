@@ -42,7 +42,7 @@ try {
     page.on('pageerror', (e) => errors.push(`${v.name}: ${e.message}`))
     page.on('console', (m) => m.type() === 'error' && errors.push(`${v.name} console: ${m.text()}`))
     await page.goto(url)
-    await page.waitForFunction(() => window.__bl !== undefined, null, { timeout: 60000 })
+    await page.waitForFunction(() => window.__bl?.teleport && window.__bl.models.done, null, { timeout: 60000 })
     await page.waitForTimeout(2500)
     await page.screenshot({ path: `${OUT}/${v.name}-title.png` })
     await page.getByRole('button', { name: /walk the narrows/i }).click()

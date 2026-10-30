@@ -1,11 +1,11 @@
-import { useProgress } from '@react-three/drei'
+import { useAssets } from '../state/assets'
 
 export function Loading() {
-  const { active, progress } = useProgress()
-  if (!active) return null
+  const { loaded, total, done } = useAssets()
+  if (done || total === 0) return null
   return (
-    <div className="loading">
-      <div className="bar" style={{ width: `${progress.toFixed(0)}%` }} />
+    <div className="loading" aria-label={`Loading models ${loaded} of ${total}`}>
+      <div className="bar" style={{ width: `${((loaded / total) * 100).toFixed(0)}%` }} />
     </div>
   )
 }
