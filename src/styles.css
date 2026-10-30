@@ -1,0 +1,74 @@
+@import url('https://fonts.googleapis.com/css2?family=Limelight&family=Special+Elite&family=Josefin+Sans:wght@400;600&display=swap');
+
+:root {
+  --ink: #0b0f14;
+  --paper: #efe4cc;
+  --sepia: #c9b48a;
+  --gold: #c9a24a;
+  --blood: #a3262b;
+  --muted: #8a8170;
+  --deco: 'Limelight', 'Playfair Display', Georgia, serif;
+  --type: 'Special Elite', 'Courier New', monospace;
+  --sans: 'Josefin Sans', 'Futura', 'Century Gothic', system-ui, sans-serif;
+}
+
+* { box-sizing: border-box; }
+html, body, #root, .app { margin: 0; height: 100%; width: 100%; overflow: hidden; background: var(--ink); color: var(--paper); }
+body { font-family: var(--sans); -webkit-user-select: none; user-select: none; touch-action: none; overscroll-behavior: none; }
+canvas { display: block; touch-action: none; }
+button { font: inherit; color: inherit; cursor: pointer; }
+
+.overlay { position: fixed; inset: 0; display: grid; place-items: center; padding: 16px; z-index: 10; }
+.title { background: radial-gradient(ellipse at center, rgba(11, 15, 20, 0.35) 0%, rgba(11, 15, 20, 0.88) 75%); }
+.pause { background: rgba(8, 10, 14, 0.7); backdrop-filter: blur(3px); }
+
+.title-card {
+  width: min(520px, 100%);
+  text-align: center;
+  padding: 36px 28px 24px;
+  border: 1px solid rgba(201, 162, 74, 0.55);
+  outline: 1px solid rgba(201, 162, 74, 0.25);
+  outline-offset: 6px;
+  background: linear-gradient(180deg, rgba(20, 17, 14, 0.82), rgba(12, 10, 9, 0.9));
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
+}
+.title-card.small { width: min(420px, 100%); }
+.eyebrow { font-family: var(--type); letter-spacing: 0.18em; color: var(--sepia); font-size: 13px; text-transform: uppercase; }
+h1 { font-family: var(--deco); font-weight: 400; font-size: clamp(44px, 11vw, 76px); margin: 10px 0 6px; letter-spacing: 0.04em; color: var(--paper); text-shadow: 0 0 24px rgba(255, 190, 110, 0.25); }
+h2 { font-family: var(--deco); font-weight: 400; font-size: 36px; margin: 0 0 18px; }
+.tagline { font-family: var(--type); color: var(--sepia); margin: 0 0 26px; font-size: 15px; }
+.primary {
+  display: inline-block; min-width: 240px; padding: 14px 22px; margin-bottom: 22px;
+  background: var(--blood); border: 1px solid #d9545a; letter-spacing: 0.14em; text-transform: uppercase; font-weight: 600;
+  box-shadow: 0 0 0 3px rgba(163, 38, 43, 0.25);
+  transition: transform 0.12s, background 0.12s;
+}
+.primary:hover { background: #b8303a; transform: translateY(-1px); }
+.settings-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 10px auto; max-width: 340px; font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+.seg { display: inline-flex; border: 1px solid rgba(201, 162, 74, 0.5); }
+.seg button { background: transparent; border: 0; padding: 8px 12px; text-transform: uppercase; font-size: 12px; letter-spacing: 0.1em; color: var(--muted); min-height: 36px; }
+.seg button.on { background: rgba(201, 162, 74, 0.2); color: var(--paper); }
+input[type='range'] { accent-color: var(--gold); width: 160px; }
+.controls { font-size: 13px; color: var(--muted); margin: 18px 0 4px; line-height: 1.5; }
+.build { font-family: var(--type); font-size: 11px; color: #5d564a; margin: 8px 0 0; }
+
+.hud { position: fixed; inset: 0; pointer-events: none; z-index: 5; }
+.crosshair { position: absolute; left: 50%; top: 50%; width: 5px; height: 5px; margin: -2.5px; border-radius: 50%; background: rgba(239, 228, 204, 0.75); box-shadow: 0 0 6px rgba(0, 0, 0, 0.8); }
+.location { position: absolute; left: max(24px, env(safe-area-inset-left)); bottom: 32px; opacity: 0; transform: translateY(8px); transition: opacity 1.2s, transform 1.2s; border-left: 3px solid var(--blood); padding-left: 14px; }
+.location.show { opacity: 1; transform: none; }
+.loc-name { font-family: var(--deco); font-size: 34px; text-shadow: 0 2px 12px rgba(0, 0, 0, 0.9); }
+.loc-sub { font-family: var(--type); font-size: 13px; color: var(--sepia); letter-spacing: 0.08em; text-shadow: 0 1px 6px rgba(0, 0, 0, 0.9); }
+.pause-btn { pointer-events: auto; position: absolute; top: max(14px, env(safe-area-inset-top)); right: max(14px, env(safe-area-inset-right)); width: 46px; height: 46px; border-radius: 50%; border: 1px solid rgba(239, 228, 204, 0.35); background: rgba(10, 12, 16, 0.55); font-size: 14px; }
+
+.touch { position: fixed; inset: 0; z-index: 4; }
+.stick { position: absolute; width: 112px; height: 112px; margin: -56px; border-radius: 50%; border: 2px solid rgba(239, 228, 204, 0.35); background: rgba(10, 12, 16, 0.25); }
+.knob { position: absolute; left: 50%; top: 50%; width: 48px; height: 48px; margin: -24px; border-radius: 50%; background: rgba(239, 228, 204, 0.55); }
+.stick-hint { position: absolute; left: 44px; bottom: 44px; width: 84px; height: 84px; border-radius: 50%; border: 1px dashed rgba(239, 228, 204, 0.3); display: grid; place-items: center; font-family: var(--type); font-size: 12px; color: rgba(239, 228, 204, 0.5); }
+
+.loading { position: fixed; left: 0; right: 0; bottom: 0; height: 3px; z-index: 20; background: rgba(255, 255, 255, 0.05); }
+.loading .bar { height: 100%; background: var(--gold); transition: width 0.2s; }
+
+@media (pointer: coarse) {
+  .location { bottom: auto; top: max(20px, env(safe-area-inset-top)); }
+  .loc-name { font-size: 26px; }
+}
