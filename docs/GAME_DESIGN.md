@@ -1,135 +1,134 @@
-# BLACK LEDGER — 1920s undercover crime game that teaches math, economics & psychology
+# SMALL BATCH — a small-town hustle sim with a mind palace
+
+> Replaces the 1920s BLACK LEDGER design (still in git history at `6d6e774`). The engine work from M1–M3 is reused; the setting, art and map are not.
 
 ## Context
-The user wants a game they can play for hours on end that also makes them seriously good at applied math, economics and psychology. It should be crime/detective themed and pull you back the way **Schedule I** does. The repo (`logiccraft7/learnmore`, branch `claude/great-johnson-kthcx6`) is empty. The budget is about $100 of cloud-session credit, so we build a **vertical slice first, then expand**. The game is for the user only (personal mastery tool), played in a browser on PC and phone, in English.
+The user didn't like the 1920s noir look and wants a game in the **Schedule I genre**:
+- a first-person, stylized low-poly small town with cartoon-proportioned people;
+- you start broke and grow a small drug business;
+- a **Mind Palace** (Sherlock Holmes) and **Charlie Munger-style mental models**, delivered as the protagonist's internal dialogue.
 
-### Decisions locked in (from the interview)
+Scope right now is **one in-game day** with **one small mission**, on a small but fully detailed map. Everything after that is expansion.
+
+**Originality rule:** same genre and same art *family*, but nothing copied. That means our own town, characters, story, UI and names. No Schedule I characters, map layout, logos or UI.
+
+### Decisions locked in
 | Area | Choice |
 |---|---|
-| Purpose | Personal mastery tool |
-| Platform | Web browser (PC + phone) |
-| Genre | Detective in a living, simulated economy |
-| Starting level | Basic school math, so the curriculum starts from foundations |
-| Setting | Fictional city **Ashport**, 1925→1929 boom to crash, Prohibition |
-| Hero | Rookie detective with 4 inner **mind voices** (Logician, Economist, Empath, Skeptic) |
-| Role | **Undercover double life**: cases by day, run a bootleg/vice racket by night (Schedule I-style) |
-| Tone / maturity | Witty noir, dark humor. Mature crime (drugs, booze, gambling, vice, murder, corruption); sex is implied only |
-| Look | Stylized low-poly 3D like Schedule I, **first-person** |
-| Engine | **Three.js via React Three Fiber** (TypeScript) |
-| Assets | Claude handles them: free CC0 low-poly packs plus custom props scripted in headless Blender |
-| Learning | Puzzles inside the world + **Mind Palace** training room (generated drills, spaced repetition) |
-| Hooks | Empire growth + automation, recipe discovery, mind-voice skill tree, living city events |
-| Time | ~20-min day/night cycle; **time freezes** during any puzzle or interrogation |
-| Failure | Consequences (money, heat, reputation, story branches), never game over |
-| Story | 5-act main arc ending in the 1929 Crash, multiple endings, then an endless Depression-era sandbox |
+| Engine | Web: Vite + TS + React Three Fiber, as now. Playable in the browser and as a claude.ai Artifact; fully testable in the cloud container |
+| Assets | Free only. Original Blender-scripted buildings, characters and animations, KayKit CC0 props, canvas-drawn textures. $0 |
+| Product | Weed grow-op. Every process is a gamified minigame, with no real-world technique |
+| Platform | PC, keyboard and mouse |
+| Learning | Keep the M3 engine (concept graph, generators, Elo + spaced repetition). Re-skin it as the Mind Palace "attic" and add mental models |
 
-## Research basis (why this design should be both fun and educational)
-- **Schedule I's hooks** ([PC Gamer](https://www.pcgamer.com/games/sim/you-may-act-like-walter-white-and-look-like-rick-and-morty-but-this-drug-dealer-sim-blowing-up-on-steam-isnt-just-a-goofy-meme-game), [PC Gamer on crafting](https://pcgamer.com/games/sim/schedule-1-is-great-because-it-knows-crafting-sucks-unless-you-turn-everything-into-a-fun-minigame), [Prima](https://primagames.com/tips/how-to-use-the-mixing-station-in-schedule-1)):
-  - Small-time to empire scaling, with new mechanics drip-fed just before boredom sets in.
-  - Crafting turned into hands-on minigames.
-  - Mixing where ingredients add or transform effects: a logic puzzle you discover rather than memorize.
-  - Customers with preferences and an "addiction" stat that drives repeat demand.
-  - Dealers/employees automate sales.
-  - Absurd dark humor.
-- **Retention psychology:**
-  - Nested loops: seconds (action), minutes (deal/case), days (empire/arc).
-  - Variable rewards (recipe discoveries, case twists).
-  - Self-determination theory: autonomy, competence, relatedness.
-  - Flow: difficulty tracks skill. We use these ethically: rewards come only from real competence.
-- **Learning science:**
-  - **Intrinsic integration** (Habgood & Ainsworth, 2011): when the learning content IS the game mechanic, kids learned more and played **7× longer** than with quiz-gated versions ([paper](https://eprints.nottingham.ac.uk/10385)). So there are no quiz gates; the math is the gameplay.
-  - Also used: retrieval practice, spaced repetition, interleaving, worked examples on failure, and adaptive difficulty.
+## Research: what makes this genre work
+Sources: [PC Gamer on Schedule I](https://www.pcgamer.com/games/sim/you-may-act-like-walter-white-and-look-like-rick-and-morty-but-this-drug-dealer-sim-blowing-up-on-steam-isnt-just-a-goofy-meme-game), [PC Gamer on crafting](https://pcgamer.com/games/sim/schedule-1-is-great-because-it-knows-crafting-sucks-unless-you-turn-everything-into-a-fun-minigame), [Notebookcheck](https://www.notebookcheck.net/Steam-This-game-looks-like-trash-but-gets-Overwhelmingly-Positive-reviews.977584.0.html), [SteamDB](https://steamdb.info/app/3164500/ufs).
+- **The art is cheap on purpose.** It was made in Unity by one developer. The look is low-poly, flat-shaded and caricatured, with simple faces. Players forgive it because the *loop* is tactile and fast. So the budget goes into **feel** (hands, animations, sounds, readable UI) and **density** (every corner has something), not polycount.
+- **Hands-on chores.** Every step is a physical action in first person: pour soil, plant, water, trim, bag. No "press button, wait".
+- **Phone as the UI hub.** Customers text you, you agree on price and place, then walk there and hand off in person.
+- **A living town.** NPCs run on daily schedules, police patrol, and a night curfew raises the risk.
+- **Scaling drip-feed.** One pot becomes a room, then employees and automation. A new verb arrives just before boredom sets in.
+- **Dark humor and odd characters.** Stylized people with strong silhouettes, distinct colors and one memorable trait each.
+
+### Where we beat it (on budget)
+1. **Inner life.** The protagonist has a Mind Palace and a council of mental-model voices that argue at real decision points: price, risk, trust and expansion. Decisions are *thinking puzzles*, not just timers.
+2. **Real competence.** Pricing, cutting and risk use real math and economics (the M3 generators). The voices get sharper as *you* master concepts.
+3. **Consequences have reasons.** Heat, customer trust and NPC gossip are simulated, so the voices can explain *why* something happened (second-order effects).
+
+## Can we hit "full detail" here? Honest feasibility
+| Need | How we get it in this container | Quality ceiling |
+|---|---|---|
+| Houses, shops, roads | Blender Python kit: modular walls, roofs, porches, windows with frames, fences, trim, rain gutters; bevelled, toon-shaded, vertex-colored | High for the stylized look |
+| Interiors | Blender kit, plus KayKit Furniture/Restaurant Bits (CC0, reachable on GitHub) | High |
+| People | Blender character generator: chunky stylized body and head, ~8 face presets, hair and hat meshes, clothing color sets, simple painted eyes and mouth | Good. Original and Schedule I-adjacent |
+| Animation | Rig generated in Blender with auto-weights. Keyframed walk, idle, talk, wave, sit, give/take, phone, cower | Decent. Less natural than mocap; Mixamo is the upgrade path later |
+| First-person hands | Blender arms with ~10 clips (hold item, pour, water, trim, hand over cash) | Good. This is where "feel" lives |
+| Audio | WebAudio-synthesized SFX (footsteps, cash, phone buzz, UI), plus CC0 sound repos on GitHub if reachable | OK. A music track is a later wish |
+| Lighting and look | Existing toon ramp, bloom, fog and day/night, retuned to bright, saturated small-town daylight | High |
+
+Blocked from this container: kenney.nl, quaternius.com, poly.pizza, Mixamo, Sketchfab, Poly Haven, freesound. Reachable: GitHub (KayKit packs, MakeHuman base mesh), npm, PyPI (`bpy`).
+
+**Nothing is needed from you to start.** Optional upgrades later:
+- ~10 Mixamo clips (free Adobe account) for more natural motion.
+- Your playtest notes after each milestone.
 
 ## The game in one paragraph
-You're Detective **[name]**, a broke rookie in Ashport, 1925. The Commissioner sends you undercover to bring down the city's kingpin. To get in, you must become a criminal: bathtub gin in an alley still → speakeasies → cocaine/opium cutting → gambling dens → laundering through a "legit" laundromat → stock-market speculation. By day you work cases that are mostly crimes your own world creates: skimming, poisoning, murders over debts, fraud, blackmail. Four voices in your head comment, argue and hint; they get smarter as *you* master concepts. Every rising price, police raid and rival gang is driven by a real economic simulation heading toward the 1929 Crash. Endings: bring down the kingpin, become the kingpin, or burn out.
+You're **Cal**, a laid-off line cook in **Hollis Creek**, a tired small town of maybe 40 people with one diner, a gas station and too many lawn ornaments. You owe **$600** to **Marlo Vance**, the pawn-shop owner who covered your rent, and he wants it **by midnight**. In the back room of your rented half-duplex, your vanished roommate left a grow tent, a jar of seeds and a notebook. Your late grandfather, a chess hustler who read Charlie Munger, taught you to think in a memory palace: **the Attic**. Today you either find the money or find out what Marlo does instead.
 
-## Core loops
-1. **Seconds:** walk the city in first person, pick up evidence, brew, mix, haggle. Mini-puzzles are embedded in actions (measure ratios, count change, read a ledger).
-2. **Minutes:**
-   - **Night (racket):** produce → mix recipes → set prices → sell to customers/runners → manage heat → launder.
-   - **Day (cases):** scene → clues/data → interrogate → case board deduction → accuse.
-3. **Days/weeks:** grow the empire and automate (hire runners, distillers, accountants), level up mind voices, unlock districts and acts, Mind Palace reviews of due concepts.
-
-## Learning woven into mechanics (curriculum map)
-Each concept is a node in a **concept graph** (prerequisites). It has a **problem generator** (randomized parameters → problem, checker, worked solution) and a **mastery score** (Elo-style plus a spaced-repetition due date). Concepts appear in the world first, then get drilled in the Mind Palace.
-
-| Game mechanic | Math | Economics | Psychology |
+## Mission 1: "Seed Money" (one day, 7:00 → 24:00, ~20 real minutes plus pauses)
+| Time | Beat | Mechanics introduced | Mind moment |
 |---|---|---|---|
-| Distilling / cutting product | ratios, fractions, percentages, units, dilution equations | cost of inputs, margins | — |
-| Recipe mixing station | combinatorics, logic, effect "algebra" | product differentiation | preferences |
-| Setting prices, customer demand | linear functions, graphs | supply & demand, elasticity, price discrimination | anchoring, decoy effect, reference prices |
-| Hiring runners / automation | rates, optimization | marginal cost/benefit, opportunity cost, labor | motivation, trust, principal-agent |
-| Police heat, bribes, raids | probability, expected value | risk, insurance, corruption economics | — |
-| Interrogating two accomplices | game theory matrices | — | Prisoner's dilemma, reciprocity, commitment, cognitive biases |
-| Deception reading (Skeptic voice) | base rates, Bayes' theorem | — | the real science: lie "tells" are unreliable; consistency + evidence work |
-| Cooked ledgers / fraud cases | statistics, Benford's law, averages, outliers | accounting, cash flow | rationalization, the fraud triangle |
-| Laundering & banking | interest, compound growth, exponentials | money, banking, credit, reserves | — |
-| Loan sharking / debts | amortization, logarithms | interest rates, default risk | present bias, sunk cost |
-| Stock speculation (Acts 4–5) | regression, volatility, leverage math | bubbles, margin buying, inflation, the 1929 crash, bank runs | herding, overconfidence, FOMO |
-| Smuggling logistics (later) | linear programming, graphs/shortest paths | trade, tariffs, comparative advantage | — |
-| City events (Depression sandbox) | data reading, forecasting | macro: GDP, unemployment, monetary policy | social psychology, persuasion, negotiation |
+| 07:00 | Wake up. Marlo's text: "$600. Midnight. Don't make me drive over." | Phone, texts, objectives | **Inversion** (Grandpa): "Don't ask how to get $600. Ask what guarantees you *don't*." The inversion list becomes the objective checklist |
+| 07:30 | Find the roommate's notebook, the tent and a seed jar | Pick up, inspect, inventory and hotbar | — |
+| 08:00 | Walk to **Hank's Hardware**: soil, 2 pots, a watering can. $80 budget | Shop UI, cash, walking the town | **Opportunity cost / unit price**: the bulk soil deal versus the small bag. A generator problem in-world |
+| 09:00 | Plant: pour soil, plant seed, water | Hands-on minigames, grow timer (accelerated) | — |
+| Day | Plants grow over ~8 in-game hours. Meanwhile, meet the town: the diner owner, a jittery mailman, the deputy on patrol | NPC schedules, dialogue, reputation | **Incentives**: "Deputy Price gets judged on traffic stops, not drugs. Follow the incentive." |
+| 17:00 | Harvest, trim, bag (gram scale) | Precision minigame | **Ratio / percent**: yield and bag splits |
+| 18:00 | First customer texts: **Dewey** (a mechanic) wants 2 bags | Phone deals: price, place, time | **Anchoring**: let him name a number first? The council argues |
+| 19:00–23:00 | 3–4 handoffs at chosen spots. A deputy patrols, and the 22:00 curfew raises risk | Meetups, handoff animation, heat and line of sight | **Expected value / margin of safety**: is a $40 sale under the streetlight worth it? |
+| 23:30 | Pay Marlo at the pawn shop | Story choice: pay in full, pay part and negotiate, or skip | **Second-order thinking**: overpay to build trust, or keep capital to grow? |
+| 24:00 | End-of-day ledger: money, trust, heat, concepts mastered. "Tomorrow: Marlo has a proposal." | Save. Hook for day 2 | Mind Palace summary of the day's models |
 
-**Phase 1 concept set (~15 nodes):** arithmetic fluency, fractions/decimals/percent, ratio & proportion, unit price, profit & margin, linear equations (one variable), basic probability, expected value, supply & demand, opportunity cost, marginal thinking, anchoring, reciprocity, prisoner's dilemma, base-rate/Bayes intuition.
+Failure is never game over. If you're short, Marlo takes the TV and doubles the next debt. If you're caught, you lose the stash and pay a fine. You always keep playing.
 
-## Tech stack
-- **Vite + TypeScript + React 18**; **@react-three/fiber**, **@react-three/drei**, **@react-three/rapier** (physics + first-person controller), **@react-three/postprocessing**.
-- **zustand** for game state; **inkjs** (Ink scripting) for dialogue and branching story; **Vitest** for tests; **Playwright** (pre-installed) for screenshot tests.
-- **Stylized "Schedule I" look:** low-poly models, toon/flat shading, outline pass, warm sodium streetlights, fog, bloom, vignette, film grain, sepia/teal color grade.
-- **Mobile:** touch joystick + look-drag, larger UI hit areas, quality presets (shadows/postprocessing off on low).
-- **Saves:** IndexedDB autosave + export/import save file.
-- **Hosting:** GitHub Actions → GitHub Pages. If the private repo can't use Pages, fall back to Cloudflare Pages/Netlify free (the user clicks "connect repo" once).
+## The Mind Palace ("the Attic") and mental models
+- **The Attic** is a dreamlike space (press **M**, or sleep). Each mental model is an object on a shelf. Drills are the M3 generators re-skinned, and "rooms" unlock as models are mastered. Time freezes while you're there.
+- **Internal dialogue:** at decision points the camera tightens, the world desaturates and 2–3 voices speak in turn. Pick a line of thought: the choice changes your options, not just flavor text. Voices level up with concept mastery (M3's level-scaled hints).
+- **The council (replaces the 1920s voices):**
+  | Voice | Covers | Example line |
+  |---|---|---|
+  | **Grandpa** (Munger latticework) | inversion, incentives, second-order effects, circle of competence, margin of safety, Lollapalooza effects | "Show me the incentive and I'll show you the outcome." |
+  | **The Ledger** (math/econ) | arithmetic, percent, ratio, unit price, margin, EV, supply and demand, compounding | "Four bags at $30 beats three at $35. Run it." |
+  | **The Read** (people) | anchoring, reciprocity, social proof, commitment, liking, scarcity | "He's already said yes in his head. Don't talk him out of it." |
+  | **The Doubt** (risk/evidence) | base rates, probability, sunk cost, confirmation bias, prisoner's dilemma | "One quiet street isn't a pattern. Deputies loop." |
+- **New concepts** added to the graph (each one a generator, plus an in-world decision template): `inversion`, `incentives`, `second_order`, `margin_of_safety`, `sunk_cost`, `social_proof`, `compounding`, `circle_of_competence`. Total: 23.
 
-## Asset pipeline (Claude does all of it)
-- **CC0 packs** (free, no account): Quaternius (animated characters, town), KayKit (city/props/characters), Kenney (city kit, cars, furniture), Poly Pizza. Kept in `public/assets/` with a `CREDITS.md`.
-- **Headless Blender** (installed in the cloud container) running Python scripts in `tools/blender/` → custom 1920s props as `.glb`: fedora, trench coat, copper still, barrels, typewriter, ticker-tape machine, Tommy gun, vintage car, stock exchange façade.
-- Optimize with `@gltf-transform/cli` (meshopt + texture compression). Target: under ~40 MB total for phone loading.
-- Risk: if the network policy blocks a pack download, fall back to Blender-scripted and procedural geometry. Check this first in M1.
+## Art direction
+- **Palette:** bright, saturated, slightly washed-out daylight with warm, cozy evenings. Clean toon ramp with 2–3 bands and soft outlines (inverted-hull on characters and props). No film grain or sepia; that was the 1920s look the user disliked.
+- **Proportions:** heads ~1/5 of height, wide shoulders, chunky hands, simple painted faces with expressive eyes and brows. Strong silhouettes from hats, hair and body shapes.
+- **Town density:** mailboxes, sprinklers, garden gnomes, porch chairs, power lines, chain-link, potted plants, parked pickups, a basketball hoop, bins, a dog house. Every 10 m has something to look at.
+- **Map** (~180 × 140 m, walkable in about 90 s end to end):
+  - Main Street: diner, Hank's Hardware, gas station with mini-mart, pawn shop, laundromat.
+  - A residential loop of 6 houses, including your half-duplex.
+  - A creek with a footbridge and a trailer park edge (meet spots).
+  - A small park with a gazebo.
+  - A police substation.
 
-## Code architecture (simulation separate from rendering, so it can be tested)
-```
-src/
-  sim/        pure TS, seeded RNG, no React: clock, economy, racket, heat, events, cases runtime
-  learning/   concept graph, generators/<concept>.ts, mastery (Elo + SRS), hint levels per voice
-  content/    data: cases/*.json (clue graphs), recipes.json, customers.json, ink/*.ink dialogue
-  world/      R3F scenes: district, interiors, player controller, NPCs, interactables
-  ui/         HUD, panels (ledger, mixing, pricing, case board, interrogation, Mind Palace), voices feed
-  state/      zustand stores + save/load
-tools/blender/  prop generation scripts
-tests/        vitest (sim + generators), playwright smoke/screenshot
-CLAUDE.md     conventions so each new session starts cheaply
-```
-- Every problem generator has the same interface: `generate(seed, difficulty) → {prompt, data, answer, check(), workedSolution}`. Tests verify that answers are correct across thousands of seeds.
-- The economy sim is a tick-based market per district: demand curves, price, stock, inflation index, interest rate, police heat. It is deterministic and testable without the 3D layer.
+  It's surrounded by tree lines and hills, with fog to hide the edges.
 
-## Phase 1 — Vertical slice (~35% of budget)
-District **"The Narrows"** (one street plus side alleys), with interiors: your office/Mind Palace, the speakeasy "The Blind Pig", an alley still, the precinct. 6–8 NPCs.
+## Tech plan (reuse first)
+**Keep:**
+- `src/sim/clock.ts`, `rng.ts`, `collision.ts`, `interact.ts`
+- `src/world/modelLoader.ts`, `daylight.ts`, `textures.ts` (toon ramp)
+- `src/state/*` patterns, save/load with migration
+- `src/learning/*` (all)
+- Artifact build and check, and the screenshot test rig
+- `ErrorBoundary`
 
-| Milestone | Deliverable |
-|---|---|
-| **M1 Foundation** | Vite/R3F scaffold, greybox street, first-person walking (keyboard/mouse + touch), stylized post-FX, quality presets, deploy pipeline, CLAUDE.md, test setup |
-| **M2 Sim core** | Clock + day/night (~20 min/day, pause on panels), money, inventory, heat, district economy tick, HUD, autosave |
-| **M3 Learning engine** | Concept graph (15 nodes), generators, mastery/SRS, Mind Palace room + drill UI, 4 mind voices with level-scaled hints/commentary |
-| **M4 Racket v0** | Bathtub-gin still minigame (ratios), mixing station with 4–6 ingredients → discoverable recipes, 6 customers with preferences + addiction/loyalty, pricing panel with live demand curve, 1 hireable runner (automation), police heat & bribe (EV) |
-| **M5 Case 1: "The Watered Whiskey"** | Someone is skimming and cutting the Blind Pig's stock and a customer dies. Ledger puzzle (percent/ratio/outliers), interrogate two bartenders (prisoner's dilemma + anchoring), Skeptic/Bayes clue, case board with red string, accusation with branching consequences |
-| **M6 Art & feel pass** | Swap greybox for CC0 + Blender props, NPC animations, audio (CC0 jazz/ambience), juice (cash-register sounds, discovery fanfare), phone playtest, bug fixes |
+**Replace:** the 1920s street (`Street.tsx`, `Buildings.tsx`, `layout.ts`), the Gazette, the 1920s props and voices.
 
-**Playtest gate:** you play the slice and tell us what's fun or boring. Phase 2 priorities are re-ranked based on that.
+**New modules:**
+- `tools/blender/town_kit.py` exports houses, shops, roads and props as `.glb`. `tools/blender/people.py` exports a character base with a rig and an animation library, plus head, hair and outfit variants.
+- `src/world/town/layout.ts` (pure): the map as data (lots, roads, colliders, nav graph, meet spots).
+- `src/sim/npc.ts` (pure): schedules and a waypoint graph with A*; `src/world/Npc.tsx` renders it (SkinnedMesh, AnimationMixer, crossfades, look-at).
+- `src/sim/grow.ts`, `deals.ts`, `heat.ts`, `mission.ts` (all pure): plants, customers and offers, patrol line of sight and suspicion, and the scripted Mission 1 state machine.
+- `src/ui/Phone.tsx` (texts, contacts, map, objectives), `Hotbar.tsx`, `InnerVoice.tsx` (decision scenes), `Attic.tsx` (re-skinned Mind Palace).
+- `src/world/Hands.tsx`: first-person arms and held items.
 
-## Phase 2 — Expand (~45%)
-- Districts: Docks (smuggling/opium), Casino Row (gambling odds, house edge), Uptown (stock exchange, banks), City Hall (corruption/elections).
-- Acts 1–5 story with Ink, more cases (some handwritten, plus procedural "side cases").
-- Product tiers (gin → whiskey → cocaine/opium), employees and automation chains, rival gang AI, laundering.
-- 1929 bubble and crash event. Curriculum grows toward algebra, functions, exponentials, statistics, game theory, macro.
+**Performance budget:**
+- Under 150 draw calls (merge static town geometry per material, instance props).
+- Under 12 MB of models.
+- Up to 12 animated NPCs at once.
+- 60 fps at medium quality on a mid-range laptop.
 
-## Phase 3 — Polish + endless sandbox (~20%)
-Depression-era sandbox with procedural cases and events, harder curriculum tiers (regression, optimization, calculus-of-margins), balancing, performance on phone.
+## Milestones (one per session, then commit and push)
+| # | Deliverable | Verify |
+|---|---|---|
+| **T1 Town & look** | `town_kit.py` (4 house types, 5 shops, road kit, 25+ props) + map layout + new lighting grade + player walking the town. Old 1920s scene removed | Screenshots day/dusk/night from 6 spots; under 150 draw calls; artifact check |
+| **T2 People** | `people.py` (rig + 8 clips) + 10 named NPCs with schedules, pathing, look-at, greet/talk; first-person hands | NPC walk loop screenshots; schedule unit tests; no T-poses |
+| **T3 Grow loop** | Phone + inventory/hotbar, hardware store shop, pots/soil/seed/water/harvest/trim/bag minigames, plant growth stages | Automated playthrough grows and bags a plant |
+| **T4 Sell loop** | Customers + texted offers + meetups + handoff + haggle; deputy patrol, curfew, heat/LOS, bust consequence | Sim tests (offers, heat), e2e completes a deal |
+| **T5 Mind & mission** | The Attic (M3 re-skin), council voices + decision scenes, 8 new mental-model generators, Mission 1 script start → end-of-day ledger, save v3 | Mission completable by script; generator sweep; screenshots |
+| **T6 Feel & ship** | SFX, juice (cash pops, phone buzz, camera bob), tutorial prompts, balance, perf pass, publish artifact | `npm run check:artifact`, full playthrough under 25 min |
 
-## Budget discipline
-- One milestone per session, with tight prompts. CLAUDE.md holds conventions so sessions don't re-explore.
-- Minimal subagent use. Commit and push after each milestone to `claude/great-johnson-kthcx6`.
-- Content is data-driven (JSON/Ink), so adding cases and recipes is cheap later.
-
-## Verification (each milestone)
-- `npm run build` and `npm run typecheck` pass. `npx vitest run` passes: sim determinism, every generator's answers verified over many seeds, economy invariants (no negative stock, prices bounded), save/load round-trip.
-- A Playwright script launches `vite preview`, walks the player, opens each panel, and takes **desktop and phone-viewport screenshots**. Claude inspects them visually for the art direction.
-- End of Phase 1: Case 1 is completable start to finish via an automated playthrough script, and the deployed URL loads on the user's phone.
+**After the slice:** day 2+ with Marlo's proposal, a second product tier, hiring a dealer (automation), more customers, rival, a bigger map.

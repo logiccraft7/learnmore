@@ -1,6 +1,7 @@
-# BLACK LEDGER — project guide
+# SMALL BATCH — project guide
 
 Full design: `docs/GAME_DESIGN.md` (read it before starting a milestone; don't re-plan).
+The project pivoted from the 1920s BLACK LEDGER game to a small-town hustle sim in the Schedule I *genre*: original town, characters, story and UI, nothing copied. M1–M3 engine code (clock, collision, model loader, learning engine, artifact pipeline) is reused; the 1920s street, Gazette and voices get replaced.
 
 ## Commands
 - `npm run dev` — local dev server
@@ -30,10 +31,8 @@ Full design: `docs/GAME_DESIGN.md` (read it before starting a milestone; don't r
 - Develop on branch `claude/great-johnson-kthcx6`.
 
 ## Progress
-- [x] M1 Foundation: The Narrows street, first-person walking, stylized look, quality presets, artifact hosting
-- [x] M2 Sim core: clock + day/night (20 min/day, frozen in menus), cash, items, heat, supply/demand market with daily events, Ashport Gazette (E at News & Tobacco), notebook (Tab), interactions (E), autosave + Continue
-- [x] M3 Learning engine: 15-concept graph, 15 seeded generators (5 difficulties each), answer parsing, Elo mastery + spaced repetition (real time), 4 mind voices with level-scaled hints, Mind Palace (office door), HUD due chip, Gazette "Work it out", save v2 with v1 migration
-- [ ] M4 Racket v0 · [ ] M5 Case 1 · [ ] M6 Art & feel pass
+- [x] (old) M1 Foundation · M2 Sim core · M3 Learning engine: engine kept, 1920s content to be replaced
+- [ ] T1 Town & look · [ ] T2 People · [ ] T3 Grow loop · [ ] T4 Sell loop · [ ] T5 Mind & mission · [ ] T6 Feel & ship
 
 ## Where things live (M2)
 - Pure sim: `src/sim/clock.ts`, `economy.ts` (curves + events), `game.ts` (GameState, daily update, saving), `news.ts` (Gazette), `interact.ts`
