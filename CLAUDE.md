@@ -6,11 +6,12 @@ Full design: `docs/GAME_DESIGN.md` (read it before starting a milestone; don't r
 - `npm run dev` — local dev server
 - `npm test` — unit tests (Vitest, `src/**/*.test.ts`)
 - `npm run build` — typecheck + production build to `dist/`
-- `npm run shots` — after a build: Playwright screenshots (desktop + phone) into `screenshots/`, fails on page errors or if the player can't walk
+- `npm run shots` — after a build: Playwright screenshots (day/night street, notebook, newspaper) into `screenshots/`; fails on page errors, a stuck player or clock, a failed purchase or a broken save. Runs at medium quality because the container renders on CPU (`SHOTS_QUALITY=high` for the full look)
 - `npm run build:artifact` — single self-contained HTML (`artifact/black-ledger.html`, all models inlined) for hosting as a claude.ai Artifact
 - `npm run check:artifact` — loads that file under the artifact viewer's strict CSP (no fetch, no eval/WASM) and fails on black screen, errors, missing models or a stuck player. **Always run it before publishing.**
 
 ## Conventions
+- **PC only** (keyboard + mouse). Don't spend effort on phone/touch support.
 - Stack: Vite + TypeScript + React + @react-three/fiber/drei/postprocessing, zustand. No physics engine: collision is `src/sim/collision.ts` (circle vs AABB).
 - Keep simulation (`src/sim`, `src/learning`, `src/world/layout.ts`) pure TS with seeded RNG (`src/sim/rng.ts`) and no React, so it stays testable.
 - Problem generators: `generate(seed, difficulty) -> {prompt, data, answer, check, workedSolution}`; test answers across many seeds.
@@ -29,5 +30,12 @@ Full design: `docs/GAME_DESIGN.md` (read it before starting a milestone; don't r
 - Develop on branch `claude/great-johnson-kthcx6`.
 
 ## Progress
-- [x] M1 Foundation: The Narrows street, first-person walking (desktop + touch), stylized night look, quality presets, artifact hosting
-- [ ] M2 Sim core · [ ] M3 Learning engine · [ ] M4 Racket v0 · [ ] M5 Case 1 · [ ] M6 Art & feel pass
+- [x] M1 Foundation: The Narrows street, first-person walking, stylized look, quality presets, artifact hosting
+- [x] M2 Sim core: clock + day/night (20 min/day, frozen in menus), cash, items, heat, supply/demand market with daily events, Ashport Gazette (E at News & Tobacco), notebook (Tab), interactions (E), autosave + Continue
+- [ ] M3 Learning engine · [ ] M4 Racket v0 · [ ] M5 Case 1 · [ ] M6 Art & feel pass
+
+## Where things live (M2)
+- Pure sim: `src/sim/clock.ts`, `economy.ts` (curves + events), `game.ts` (GameState, daily update, saving), `news.ts` (Gazette), `interact.ts`
+- Stores: `src/state/world.ts` (game state, save/load, `playerPose`), `game.ts` (phase), `focus.ts` (E-prompt target)
+- Street interactions: `src/world/interactables.ts`; lighting by hour: `src/world/daylight.ts` + `lightNow()` in `Atmosphere.tsx`
+- Debug hook `window.__bl`: `teleport`, `position`, `setHour(h)`, `spots`, `game`, `models`

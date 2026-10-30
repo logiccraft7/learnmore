@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 
-/** Top-level flow: title screen → walking around → paused menu. */
-export type Phase = 'title' | 'playing' | 'paused'
+/** Top-level flow. Game time only runs while 'playing'; the panels freeze it. */
+export type Phase = 'title' | 'playing' | 'paused' | 'notebook' | 'gazette'
 
 type GameState = {
   phase: Phase

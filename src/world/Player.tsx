@@ -2,9 +2,13 @@ import { useFrame, useThree } from '@react-three/fiber'
 import { useEffect, useRef } from 'react'
 import * as THREE from 'three'
 import { resolveCircle, type Aabb } from '../sim/collision'
+import { findFocus } from '../sim/interact'
 import { useGame } from '../state/game'
 import { consumeLook, input } from '../state/input'
-import { isTouchDevice, useSettings } from '../state/settings'
+import { useSettings } from '../state/settings'
+import { playerPose, useWorld } from '../state/world'
+import { INTERACTABLES } from './interactables'
+import { useFocus } from '../state/focus'
 
 const EYE_HEIGHT = 1.68
 const RADIUS = 0.35
@@ -12,50 +16,75 @@ const WALK = 3.4
 const RUN = 6.6
 const LOOK_SPEED = 0.0022
 
-/** First-person walker: keyboard/mouse on desktop, joystick + drag on touch. */
-export function Player({ spawn, colliders }: { spawn: { x: number; z: number; yaw: number }; colliders: Aabb[] }) {
+function lockPointer(el: HTMLElement) {
+  try {
+    const p = el.requestPointerLock() as unknown as Promise<void> | undefined
+    p?.catch?.(() => {})
+  } catch {
+    /* pointer lock unavailable in this frame: drag-to-look still works */
+  }
+}
+
+/** First-person walker: WASD + mouse, E to use what you're facing, Tab for the notebook. */
+export function Player({ colliders }: { colliders: Aabb[] }) {
   const camera = useThree((s) => s.camera)
   const gl = useThree((s) => s.gl)
-  const pos = useRef(new THREE.Vector2(spawn.x, spawn.z))
+  const pos = useRef(new THREE.Vector2(playerPose.x, playerPose.z))
   const vel = useRef(new THREE.Vector2())
-  const yaw = useRef(spawn.yaw)
+  const yaw = useRef(playerPose.yaw)
   const pitch = useRef(0.02)
   const bob = useRef(0)
   const euler = useRef(new THREE.Euler(0, 0, 0, 'YXZ'))
 
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
-      input.keys.add(e.code)
       const game = useGame.getState()
-      if ((e.code === 'Escape' || e.code === 'KeyP') && game.phase === 'playing' && !document.pointerLockElement) game.setPhase('paused')
+      if (e.code === 'Tab') {
+        e.preventDefault()
+        if (game.phase === 'playing') {
+          game.setPhase('notebook')
+          document.exitPointerLock?.()
+        } else if (game.phase === 'notebook') {
+          game.setPhase('playing')
+          lockPointer(gl.domElement)
+        }
+        return
+      }
+      if (e.code === 'Escape' || e.code === 'KeyP') {
+        if (game.phase === 'notebook' || game.phase === 'gazette') game.setPhase('playing')
+        else if (game.phase === 'playing' && !document.pointerLockElement) game.setPhase('paused')
+        return
+      }
+      if (e.code === 'KeyE' && game.phase === 'playing' && !e.repeat) {
+        useFocus.getState().focus?.use()
+        return
+      }
+      if (game.phase === 'playing') input.keys.add(e.code)
     }
     const up = (e: KeyboardEvent) => input.keys.delete(e.code)
     const blur = () => input.keys.clear()
     let dragging = false
     const pdown = (e: PointerEvent) => {
-      if (e.pointerType !== 'mouse' || e.target !== gl.domElement) return
+      if (e.target !== gl.domElement) return
       dragging = true
-      if (useGame.getState().phase === 'playing' && !isTouchDevice) {
-        // Pointer lock is unavailable in some sandboxed frames; dragging still works there.
-        try {
-          const p = gl.domElement.requestPointerLock() as unknown as Promise<void> | undefined
-          p?.catch?.(() => {})
-        } catch {
-          /* fall back to drag-to-look */
-        }
-      }
+      if (useGame.getState().phase === 'playing') lockPointer(gl.domElement)
     }
     const pup = () => (dragging = false)
+    let skipNextMove = false
     const move = (e: PointerEvent) => {
-      if (e.pointerType !== 'mouse') return
-      if (document.pointerLockElement === gl.domElement || dragging) {
-        input.lookX += e.movementX
-        input.lookY += e.movementY
+      if (document.pointerLockElement !== gl.domElement && !dragging) return
+      // Chrome reports one bogus, huge movement right after the pointer locks; drop it and any other spike.
+      if (skipNextMove || Math.abs(e.movementX) > 300 || Math.abs(e.movementY) > 300) {
+        skipNextMove = false
+        return
       }
+      input.lookX += e.movementX
+      input.lookY += e.movementY
     }
     let wasLocked = false
     const lockChange = () => {
       const locked = document.pointerLockElement === gl.domElement
+      if (locked) skipNextMove = true
       const game = useGame.getState()
       if (wasLocked && !locked && game.phase === 'playing') game.setPhase('paused')
       wasLocked = locked
@@ -87,11 +116,12 @@ export function Player({ spawn, colliders }: { spawn: { x: number; z: number; ya
         configurable: true,
         value(x: number, z: number, y?: number, p?: number) {
           pos.current.set(x, z)
+          consumeLook()
           if (y !== undefined) yaw.current = y
           if (p !== undefined) pitch.current = p
         },
       },
-      position: { configurable: true, get: () => ({ x: pos.current.x, z: pos.current.y, yaw: yaw.current }) },
+      position: { configurable: true, get: () => ({ x: pos.current.x, z: pos.current.y, yaw: yaw.current, pitch: pitch.current }) },
     })
   }, [])
 
@@ -103,9 +133,10 @@ export function Player({ spawn, colliders }: { spawn: { x: number; z: number; ya
       const sens = LOOK_SPEED * useSettings.getState().sensitivity
       yaw.current -= look.x * sens
       pitch.current = THREE.MathUtils.clamp(pitch.current - look.y * sens, -1.35, 1.35)
+      // Game time only runs while you're walking around.
+      useWorld.getState().advance(rawDt)
     }
 
-    // Desired move in camera space: x = strafe right, y = forward.
     let mx = 0
     let my = 0
     let run = false
@@ -116,9 +147,6 @@ export function Player({ spawn, colliders }: { spawn: { x: number; z: number; ya
       if (k.has('KeyD') || k.has('ArrowRight')) mx += 1
       if (k.has('KeyA') || k.has('ArrowLeft')) mx -= 1
       run = k.has('ShiftLeft') || k.has('ShiftRight')
-      mx += input.stickX
-      my += input.stickY
-      run ||= input.stickSprint
     }
     const len = Math.hypot(mx, my)
     if (len > 1) {
@@ -136,6 +164,12 @@ export function Player({ spawn, colliders }: { spawn: { x: number; z: number; ya
 
     const next = resolveCircle(pos.current.x + vel.current.x * dt, pos.current.y + vel.current.y * dt, RADIUS, colliders)
     pos.current.set(next.x, next.z)
+    playerPose.x = next.x
+    playerPose.z = next.z
+    playerPose.yaw = yaw.current
+
+    const focus = playing ? findFocus(next.x, next.z, yaw.current, INTERACTABLES) : null
+    if (focus !== useFocus.getState().focus) useFocus.setState({ focus })
 
     const moving = vel.current.length()
     bob.current += dt * moving * 2.1

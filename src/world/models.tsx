@@ -46,6 +46,9 @@ export const MODEL_SCALE: Partial<Record<ModelName, number>> = {
   watertower: 5,
 }
 
+/** Every light-emitting model material (lamp glass, headlamps), dimmed by day. */
+export const glowMaterials = new Set<THREE.MeshBasicMaterial>()
+
 /** Swap every material for the game's cel-shaded look; "Glow*" materials become light sources. */
 function toonify(root: THREE.Object3D) {
   root.traverse((o) => {
@@ -58,6 +61,8 @@ function toonify(root: THREE.Object3D) {
       if (src.name.startsWith('Glow')) {
         const glow = new THREE.MeshBasicMaterial({ color: src.color.clone().multiplyScalar(2.2), toneMapped: false })
         glow.name = src.name
+        glow.userData.baseColor = glow.color.clone()
+        glowMaterials.add(glow)
         return glow
       }
       const toon = new THREE.MeshToonMaterial({ color: src.color, map: src.map, gradientMap: toonRamp() })

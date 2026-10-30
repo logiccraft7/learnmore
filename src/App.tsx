@@ -7,7 +7,9 @@ import { startModelLoading } from './world/models'
 import { TitleScreen } from './ui/TitleScreen'
 import { Hud } from './ui/Hud'
 import { PauseMenu } from './ui/PauseMenu'
-import { TouchControls } from './ui/TouchControls'
+import { Notebook } from './ui/Notebook'
+import { Gazette } from './ui/Gazette'
+import { AutoSave } from './ui/AutoSave'
 import { Loading } from './ui/Loading'
 import { ErrorBoundary, GlobalErrors, NoWebGL, hasWebGL } from './ui/ErrorBoundary'
 
@@ -37,7 +39,9 @@ export function App() {
       </ErrorBoundary>
       <Loading />
       <Hud />
-      <TouchControls />
+      <Notebook />
+      <Gazette />
+      <AutoSave />
       <PauseMenu />
       <TitleScreen />
       <GlobalErrors />

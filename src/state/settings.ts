@@ -3,10 +3,8 @@ import { create } from 'zustand'
 export type Quality = 'low' | 'medium' | 'high'
 
 const KEY = 'black-ledger:settings'
-export const isTouchDevice = typeof window !== 'undefined' && window.matchMedia?.('(pointer: coarse)').matches
-
 function load(): { quality: Quality; sensitivity: number } {
-  const fallback = { quality: (isTouchDevice ? 'low' : 'high') as Quality, sensitivity: 1 }
+  const fallback = { quality: 'high' as Quality, sensitivity: 1 }
   try {
     const raw = localStorage.getItem(KEY)
     return raw ? { ...fallback, ...JSON.parse(raw) } : fallback

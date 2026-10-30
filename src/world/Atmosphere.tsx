@@ -1,14 +1,33 @@
+import { useFrame, useThree } from '@react-three/fiber'
 import { Bloom, EffectComposer, Noise, ToneMapping, Vignette } from '@react-three/postprocessing'
 import { BlendFunction, ToneMappingMode } from 'postprocessing'
-import { useMemo } from 'react'
+import { useMemo, useRef } from 'react'
 import * as THREE from 'three'
+import { hourOfDay } from '../sim/clock'
+import { START_MINUTES } from '../sim/game'
 import { createRng } from '../sim/rng'
 import { QUALITY, useSettings } from '../state/settings'
+import { useWorld } from '../state/world'
+import { daylight, type Daylight } from './daylight'
 import { softDisc } from './textures'
 
 export const FOG_COLOR = '#0f1824'
 
-/** Night sky: gradient dome, a hazy moon and a sprinkle of stars above the smog. */
+/** Current hour of the game clock (the title screen shows the opening evening). */
+export const currentHour = () => hourOfDay(useWorld.getState().game?.minutes ?? START_MINUTES)
+
+/** Light for this frame, computed once per frame and shared by everything that needs it. */
+let frameLight: Daylight = daylight(currentHour())
+let frameStamp = -1
+export function lightNow(clockTime: number): Daylight {
+  if (clockTime !== frameStamp) {
+    frameStamp = clockTime
+    frameLight = daylight(currentHour())
+  }
+  return frameLight
+}
+
+/** Sky dome with a day/night gradient, stars, the moon by night and the sun by day. */
 export function Sky() {
   const dome = useMemo(
     () =>
@@ -16,12 +35,12 @@ export function Sky() {
         side: THREE.BackSide,
         depthWrite: false,
         fog: false,
-        uniforms: { top: { value: new THREE.Color('#05070d') }, horizon: { value: new THREE.Color('#1f2a3c') }, glow: { value: new THREE.Color('#4a3a3a') } },
+        uniforms: { top: { value: new THREE.Color() }, horizon: { value: new THREE.Color() }, glow: { value: new THREE.Color() } },
         vertexShader: `varying vec3 vDir; void main(){ vDir = normalize(position); gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }`,
         fragmentShader: `uniform vec3 top; uniform vec3 horizon; uniform vec3 glow; varying vec3 vDir;
           void main(){ float h = clamp(vDir.y, 0.0, 1.0);
             vec3 c = mix(horizon, top, pow(h, 0.55));
-            c += glow * pow(1.0 - h, 6.0) * 0.6; // city light pollution on the horizon
+            c += glow * pow(1.0 - h, 6.0) * 0.6;
             gl_FragColor = vec4(c, 1.0); }`,
       }),
     [],
@@ -39,41 +58,83 @@ export function Sky() {
     g.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3))
     return g
   }, [])
+  const starMat = useRef<THREE.PointsMaterial>(null!)
+  const moon = useRef<THREE.Group>(null!)
+  const sun = useRef<THREE.Sprite>(null!)
+  const sunMat = useRef<THREE.SpriteMaterial>(null!)
+
+  useFrame(({ clock }) => {
+    const l = lightNow(clock.elapsedTime)
+    dome.uniforms.top.value.copy(l.skyTop)
+    dome.uniforms.horizon.value.copy(l.skyHorizon)
+    dome.uniforms.glow.value.copy(l.skyGlow)
+    starMat.current.opacity = 0.7 * l.night
+    moon.current.visible = l.night > 0.05
+    moon.current.scale.setScalar(Math.max(0.001, l.night))
+    sun.current.visible = l.sun > 0.01
+    sun.current.position.copy(l.lightDir).multiplyScalar(380)
+    sunMat.current.opacity = l.sun
+  })
+
   return (
     <group>
       <mesh material={dome} scale={450} renderOrder={-1}>
         <sphereGeometry args={[1, 32, 16]} />
       </mesh>
       <points geometry={stars}>
-        <pointsMaterial size={1.2} sizeAttenuation={false} color="#9aa6c0" fog={false} transparent opacity={0.7} />
+        <pointsMaterial ref={starMat} size={1.2} sizeAttenuation={false} color="#9aa6c0" fog={false} transparent opacity={0.7} />
       </points>
-      <sprite position={[-120, 160, 220]} scale={[70, 70, 1]}>
-        <spriteMaterial map={softDisc()} color={[1.6, 1.55, 1.35]} fog={false} toneMapped={false} depthWrite={false} />
-      </sprite>
-      <sprite position={[-120, 160, 220]} scale={[16, 16, 1]}>
-        <spriteMaterial map={softDisc()} color={[3, 2.9, 2.6]} fog={false} toneMapped={false} depthWrite={false} />
+      <group ref={moon} position={[-120, 160, 220]}>
+        <sprite scale={[70, 70, 1]}>
+          <spriteMaterial map={softDisc()} color={[1.6, 1.55, 1.35]} fog={false} toneMapped={false} depthWrite={false} />
+        </sprite>
+        <sprite scale={[16, 16, 1]}>
+          <spriteMaterial map={softDisc()} color={[3, 2.9, 2.6]} fog={false} toneMapped={false} depthWrite={false} />
+        </sprite>
+      </group>
+      <sprite ref={sun} scale={[60, 60, 1]}>
+        <spriteMaterial ref={sunMat} map={softDisc()} color={[3, 2.6, 1.9]} fog={false} toneMapped={false} depthWrite={false} transparent />
       </sprite>
     </group>
   )
 }
 
+/** Sun/moon key light, sky fill, fog and background, all following the clock. */
 export function Lighting() {
   const shadows = QUALITY[useSettings((s) => s.quality)].shadows
+  const scene = useThree((s) => s.scene)
+  const hemi = useRef<THREE.HemisphereLight>(null!)
+  const key = useRef<THREE.DirectionalLight>(null!)
+  useFrame(({ clock }) => {
+    const l = lightNow(clock.elapsedTime)
+    hemi.current.color.copy(l.hemiSky)
+    hemi.current.groundColor.copy(l.hemiGround)
+    hemi.current.intensity = l.hemiIntensity
+    key.current.color.copy(l.lightColor)
+    key.current.intensity = l.lightIntensity
+    key.current.position.copy(l.lightDir).multiplyScalar(90)
+    if (scene.fog instanceof THREE.Fog) {
+      scene.fog.color.copy(l.fog)
+      // Haze thins out in daylight so the far end of the street is visible.
+      scene.fog.far = 95 + 70 * (1 - l.night)
+    }
+    if (scene.background instanceof THREE.Color) scene.background.copy(l.fog)
+  })
   return (
     <group>
-      <hemisphereLight args={['#5a6d94', '#2a1f18', 1.25]} />
+      <hemisphereLight ref={hemi} args={['#5a6d94', '#2a1f18', 1.25]} />
       <ambientLight intensity={0.25} color="#8090b0" />
       <directionalLight
+        ref={key}
         position={[-40, 70, 50]}
         intensity={0.9}
-        color="#a8b8ff"
         castShadow={shadows}
         shadow-mapSize={[2048, 2048]}
-        shadow-camera-left={-40}
-        shadow-camera-right={40}
+        shadow-camera-left={-70}
+        shadow-camera-right={70}
         shadow-camera-top={70}
         shadow-camera-bottom={-70}
-        shadow-camera-far={200}
+        shadow-camera-far={250}
         shadow-bias={-0.0005}
       />
     </group>

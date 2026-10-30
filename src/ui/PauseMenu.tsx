@@ -21,8 +21,12 @@ export function PauseMenu() {
         </div>
         <label className="settings-row">
           <span>Look speed</span>
-          <input type="range" min={0.3} max={2.5} step={0.1} value={sensitivity} onChange={(e) => setSensitivity(Number(e.target.value))} />
+          <input id="look-speed" type="range" min={0.3} max={2.5} step={0.1} value={sensitivity} onChange={(e) => setSensitivity(Number(e.target.value))} />
         </label>
+        <p className="small saved">Game saved. Time is stopped.</p>
+        <button className="secondary" onClick={() => setPhase('title')}>
+          Quit to title
+        </button>
       </div>
     </div>
   )

@@ -1,14 +1,11 @@
-import { useMemo } from 'react'
-import { generateStreet } from './layout'
+import { street } from '../state/world'
 import { Buildings } from './Buildings'
 import { Street } from './Street'
 import { Player } from './Player'
 import { Effects, FOG_COLOR, Lighting, Sky } from './Atmosphere'
 
-export const WORLD_SEED = 1925
-
 export function Scene() {
-  const layout = useMemo(() => generateStreet(WORLD_SEED), [])
+  const layout = street
   return (
     <>
       <color attach="background" args={[FOG_COLOR]} />
@@ -17,7 +14,7 @@ export function Scene() {
       <Lighting />
       <Buildings buildings={layout.buildings} />
       <Street layout={layout} />
-      <Player spawn={layout.spawn} colliders={layout.colliders} />
+      <Player colliders={layout.colliders} />
       <Effects />
     </>
   )

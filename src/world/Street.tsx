@@ -4,7 +4,8 @@ import * as THREE from 'three'
 import { createRng } from '../sim/rng'
 import { useSettings, QUALITY } from '../state/settings'
 import { FACADE_X, ROAD_HALF, STREET_HALF_LENGTH, type StreetLayout } from './layout'
-import { Model } from './models'
+import { Model, glowMaterials } from './models'
+import { lightNow } from './Atmosphere'
 import { bricks, cobblestones, pavement, softDisc, toonRamp } from './textures'
 
 const LAMP_COLOR = '#ffb866'
@@ -46,6 +47,14 @@ function Ground() {
 }
 
 function Lamps({ layout }: { layout: StreetLayout }) {
+  const lights = useRef<THREE.PointLight[]>([])
+  useFrame(({ clock }) => {
+    const { night } = lightNow(clock.elapsedTime)
+    // Lamps are lit from dusk to dawn; by day they're just iron posts.
+    for (const l of lights.current) if (l) l.intensity = 14 * night
+    poolMat.opacity = night
+    for (const m of glowMaterials) m.color.copy(m.userData.baseColor).multiplyScalar(0.12 + 0.88 * night)
+  })
   const poolMat = useMemo(
     () =>
       new THREE.MeshBasicMaterial({
@@ -63,7 +72,7 @@ function Lamps({ layout }: { layout: StreetLayout }) {
       {layout.lamps.map((l, i) => (
         <group key={i} position={[l.x, 0.14, l.z]}>
           <Model name="gas_lamp" rotation={[0, l.x < 0 ? Math.PI / 2 : -Math.PI / 2, 0]} />
-          <pointLight position={[0, 3.3, 0]} color={LAMP_COLOR} intensity={14} distance={13} decay={1.5} />
+          <pointLight ref={(r) => r && (lights.current[i] = r)} position={[0, 3.3, 0]} color={LAMP_COLOR} intensity={14} distance={13} decay={1.5} />
           <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.02, 0]} material={poolMat}>
             <planeGeometry args={[9, 9]} />
           </mesh>

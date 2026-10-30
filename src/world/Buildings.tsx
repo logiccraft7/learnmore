@@ -1,8 +1,10 @@
+import { useFrame } from '@react-three/fiber'
 import { useLayoutEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import { createRng } from '../sim/rng'
 import { QUALITY, useSettings } from '../state/settings'
 import type { Building } from './layout'
+import { lightNow } from './Atmosphere'
 import { awningStripes, bricks, shopInterior, signTexture, toonRamp } from './textures'
 
 /** Box whose UVs are in metres / tile, so brick courses stay the same size on every building. */
@@ -112,6 +114,10 @@ function Storefront({ b }: { b: Building }) {
   }, [shop])
   const ww = Math.min(b.width * 0.5, 5)
   const lit = shop.lit
+  const lamp = useRef<THREE.PointLight>(null)
+  useFrame(({ clock }) => {
+    if (lamp.current) lamp.current.intensity = 6 * lightNow(clock.elapsedTime).night
+  })
   return (
     <group>
       {/* Display window */}
@@ -142,7 +148,7 @@ function Storefront({ b }: { b: Building }) {
           <meshToonMaterial map={awningStripes(shop.awning)} gradientMap={toonRamp()} />
         </mesh>
       )}
-      {lit && shopLights && <pointLight position={[-b.width * 0.12, 1.6, 1.4]} color="#ffb25c" intensity={6} distance={7} decay={1.6} />}
+      {lit && shopLights && <pointLight ref={lamp} position={[-b.width * 0.12, 1.6, 1.4]} color="#ffb25c" intensity={6} distance={7} decay={1.6} />}
     </group>
   )
 }
@@ -174,6 +180,10 @@ export function Buildings({ buildings }: { buildings: Building[] }) {
     }),
     [],
   )
+  useFrame(({ clock }) => {
+    // Lit windows glow at night; by day they read as warm glass.
+    mats.lit.color.setScalar(0.3 + 0.7 * lightNow(clock.elapsedTime).night)
+  })
   return (
     <group>
       {buildings.map((b) => (

@@ -5,6 +5,7 @@ import type { Aabb } from '../sim/collision'
  * The Narrows: one street in Ashport, generated from a seed.
  * The street runs along z. Road |x| < ROAD_HALF, sidewalks out to FACADE_X, then buildings.
  */
+export const WORLD_SEED = 1925
 export const ROAD_HALF = 4
 export const FACADE_X = 7
 export const STREET_HALF_LENGTH = 55

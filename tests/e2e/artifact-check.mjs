@@ -32,7 +32,6 @@ const browser = await chromium.launch({ args: ['--use-angle=swiftshader', '--ena
 const failures = []
 const views = [
   { name: 'desktop', viewport: { width: 1280, height: 720 }, touch: false },
-  { name: 'phone', viewport: { width: 390, height: 844 }, touch: true },
 ]
 try {
   for (const v of views) {

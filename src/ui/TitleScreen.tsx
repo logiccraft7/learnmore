@@ -1,5 +1,7 @@
+import { useState } from 'react'
 import { useGame } from '../state/game'
-import { isTouchDevice, useSettings, type Quality } from '../state/settings'
+import { useSettings, type Quality } from '../state/settings'
+import { useWorld } from '../state/world'
 
 export function QualityPicker() {
   const quality = useSettings((s) => s.quality)
@@ -18,10 +20,14 @@ export function QualityPicker() {
 export function TitleScreen() {
   const phase = useGame((s) => s.phase)
   const setPhase = useGame((s) => s.setPhase)
+  const hasSave = useWorld((s) => s.hasSave)
+  const [confirmNew, setConfirmNew] = useState(false)
   if (phase !== 'title') return null
-  const begin = () => {
+  const start = (fresh: boolean) => {
+    const w = useWorld.getState()
+    if (fresh) w.newGame()
+    else w.continueGame()
     setPhase('playing')
-    if (isTouchDevice) document.documentElement.requestFullscreen?.().catch(() => {})
   }
   return (
     <div className="overlay title">
@@ -29,19 +35,28 @@ export function TitleScreen() {
         <div className="eyebrow">Ashport · October 1925</div>
         <h1>Black Ledger</h1>
         <p className="tagline">Every crime is a transaction. Every lie has a price.</p>
-        <button className="primary" onClick={begin}>
-          Walk the Narrows
-        </button>
+        <div className="title-actions">
+          {hasSave ? (
+            <>
+              <button className="primary" onClick={() => start(false)}>
+                Continue
+              </button>
+              <button className="secondary" onClick={() => (confirmNew ? start(true) : setConfirmNew(true))}>
+                {confirmNew ? 'Erase save and start over?' : 'New game'}
+              </button>
+            </>
+          ) : (
+            <button className="primary" onClick={() => start(true)}>
+              Walk the Narrows
+            </button>
+          )}
+        </div>
         <div className="settings-row">
           <span>Graphics</span>
           <QualityPicker />
         </div>
-        <p className="controls">
-          {isTouchDevice
-            ? 'Left thumb: walk (push far to run) · Right thumb: look'
-            : 'Click to look around · WASD to walk · Shift to run · Esc to pause'}
-        </p>
-        <p className="build">Milestone 1 · the street</p>
+        <p className="controls">Click to look · WASD walk · Shift run · E use · Tab notebook · Esc pause</p>
+        <p className="build">Step 2 · the living city · progress saves automatically</p>
       </div>
     </div>
   )
